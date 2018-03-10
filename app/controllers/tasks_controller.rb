@@ -2,30 +2,40 @@ class TasksController < ApplicationController
   before_action :set_task, only: [:show, :edit, :update, :destroy]
   def index
     @tasks = Task.order(created_at: :desc).page(params[:page]).per(3)
-    # if logged_in?
-    #   @user = current_user
-    #   @tasks= current_user.tasks.order('created_at DESC').page(params[:page])
-    # end
+    if logged_in?
+      @user = current_user
+      @tasks= current_user.tasks.order('created_at DESC').page(params[:page])
+    end
   end
   
-  def show
-  end
+  
 
   def new
     @task = Task.new
   end
   
   def create
-    @task = Task.new(task_params)
-    
+    @task = current_user.tasks.build(task_params)
     if @task.save
-      flash[:success] = 'Task が正常に登録されました'
-      redirect_to @task
-      
+      flash[:success] = 'メッセージを投稿しました。'
+      redirect_to root_url
     else
-      flash.now[:danger] = 'Task が登録されませんでした'
-      render :new
+      @tasks = current_user.tasks.order('created_at DESC').page(params[:page])
+      flash.now[:danger] = 'メッセージの投稿に失敗しました。'
+      render 'tasks/index'
     end
+   
+   
+    # @task = Task.new(task_params)
+    
+    # if @task.save
+    #   flash[:success] = 'Task が正常に登録されました'
+    #   redirect_to @task
+      
+    # else
+    #   flash.now[:danger] = 'Task が登録されませんでした'
+    #   render :new
+    # end
     
   end
   
@@ -64,5 +74,11 @@ class TasksController < ApplicationController
   def task_params
     params.require(:task).permit(:content, :status)
   end
-
+  
+  def correct_user
+    @task = current_user.tasks.find_by(id: params[:id])
+    unless @tasks
+      redirect_to root_url
+    end
+  end
 end
