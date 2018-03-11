@@ -1,5 +1,8 @@
 class TasksController < ApplicationController
   before_action :set_task, only: [:show, :edit, :update, :destroy]
+  before_action :correct_user#, only: [:destroy]
+
+
   def index
     @tasks = Task.order(created_at: :desc).page(params[:page]).per(3)
     if logged_in?
